@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Clases;
+package TPOCentroDeEsqui;
 
 import java.util.concurrent.CyclicBarrier;
 import java.util.logging.Level;
