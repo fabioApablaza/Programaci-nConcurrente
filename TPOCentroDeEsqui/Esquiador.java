@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author user
+ * @author Apablaza Fabio FAI - 2039
  */
 public class Esquiador implements Runnable {
 
@@ -51,34 +51,12 @@ public class Esquiador implements Runnable {
     public void cursoEsqui() throws InterruptedException {
         int numClase = 0;
         boolean cursoCompleto = true;
-        numClase = unCentro.entrarCurso();
-        System.out.println("Esquiador " + id + " con clase " + numClase);
-        if (numClase != 0) {
-            switch (numClase) {
-                case 1: {
-                    cursoCompleto = unCentro.contratarPrimerClase(id);
-                    break;
-                }
-                case 2: {
-                    cursoCompleto = unCentro.contratarSegundaClase(id);
-                    break;
-                }
-                case 3: {
-                    cursoCompleto = unCentro.contratarTercerClase(id);
-                    break;
-                }
-                case 4: {
-                    cursoCompleto = unCentro.contratarCuartaClase(id);
-                    break;
-                }
-                case 5: {
-                    cursoCompleto = unCentro.contratarQuintaClase(id);
-                    break;
-                }
-
-            }
-            if (cursoCompleto) {
-                unCentro.salirCurso(id, numClase);
+        numClase = unCentro.busquedaCurso();
+        System.out.println("Esquiador " + id + " con clase " + (numClase+1));
+        if (numClase != 5) {
+            cursoCompleto=unCentro.entrarCurso(numClase, id);
+            if(cursoCompleto){
+                unCentro.salirCurso(numClase, id);
             }
         }
     }
@@ -102,10 +80,10 @@ public class Esquiador implements Runnable {
 
                 unCentro.entradaAlCentro();//Los esquiadores entran al centro de esqui
 
-                switch (1) {
+                switch (5) {
                     case 1: {//los esquiadores deciden subir por el primer medio de elevacion
                         decision = desicion.nextInt(7 - 5) + 5;
-                        unCentro.sillasElevadoras(id, pase, 1);
+                        unCentro.accederMedio(id, pase, 1);
                         if (pase) {
                             esquiando();
                             descansar();

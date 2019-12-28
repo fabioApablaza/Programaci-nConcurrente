@@ -6,6 +6,7 @@
 package TPOCentroDeEsqui;
 
 import java.util.Random;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -14,19 +15,20 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class Confiteria {
 
-    private static int CAPACIDAD; //CAPACIDAD MAXIMA DE LA CONFITERIA
+    private static final int CAPACIDAD= 100; //CAPACIDAD MAXIMA DE LA CONFITERIA
     private int cantidadComensales ;// Cantidad de comensales que entraran a la confiteria
-    Random decisiones ;// Variable aleatoria que simulara las decisiones
+    private Random decisiones ;// Variable aleatoria que simulara las decisiones
     private ReentrantLock mostradorComidaRapida1;//Simula el mostrador de comida rapida 1
     private ReentrantLock mostradorComidaRapida2;//Simula el mostrador de comida rapida 2
+    private Semaphore caja;//Semaforo binario para controlar el acceso a la caja
 
 
     public Confiteria() {
-        CAPACIDAD = 100;
         cantidadComensales = 0;
         decisiones = new Random();
         mostradorComidaRapida1 = new ReentrantLock();
         mostradorComidaRapida2 = new ReentrantLock();
+        caja = new Semaphore(1, true);
 
     }
 
@@ -46,12 +48,15 @@ public class Confiteria {
 
     public synchronized int entrarCaja(int idEsquiador) throws InterruptedException {
         //Metodo en el cual los esquiadores simulan pasar por la caja
-        int postre = decisiones.nextInt(2);//Variable que decide si el esquiador compra o no un postre
+        int postre;
+        this.caja.acquire();//Un solo esquiador por vez paga por caja
+        postre = decisiones.nextInt(2);//Variable que decide si el esquiador compra o no un postre
         if (postre == 1) {
-            System.out.println("El esquiador " + idEsquiador + " decisidio comprar postre");
+            System.out.println("El esquiador " + idEsquiador + " decidio comprar postre");
         }
         System.out.println("El esquiador " + idEsquiador + " esta pagando en la caja");
         Thread.sleep(200);
+        this.caja.release();
         return postre;
     }
 

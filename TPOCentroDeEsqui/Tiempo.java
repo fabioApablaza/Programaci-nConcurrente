@@ -7,7 +7,7 @@ package TPOCentroDeEsqui;
 
 /**
  *
- * @author user
+ * @author Apablaza Fabio FAI - 2039
  */
 public class Tiempo implements Runnable {
 

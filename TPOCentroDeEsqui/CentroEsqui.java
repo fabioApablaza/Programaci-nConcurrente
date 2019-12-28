@@ -17,7 +17,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  *
- * @author user
+ * @author Apablaza Fabio FAI - 2039
  */
 public class CentroEsqui {
 
@@ -25,30 +25,16 @@ public class CentroEsqui {
     private Lock cerrojo;
     private boolean entradaInstructores;
     private boolean entradaEsquiadores;
-    private int cantPrimerClase;
     private int cantSegClase;
     private int cantTercerClase;
     private int cantCuartaClase;
     private int cantQuintaClase;
-    private int cantPersonasPrimerElevador;
-    private int cantPersonasSegundoElevador;
-    private int cantPersonasTercerElevador;
-    private int cantPersonasCuartoElevador;
-    private Condition intructores;
+    private Condition instructores;
     private Condition estudiantes;
-    private CyclicBarrier primerBarrera;
-    private CyclicBarrier segundaBarrera;
-    private CyclicBarrier tercerBarrera;
-    private CyclicBarrier cuartaBarrera;
-    private CyclicBarrier quintaBarrera;
-    private CyclicBarrier primerBarreraSalir;
-    private CyclicBarrier segundaBarreraSalir;
-    private CyclicBarrier tercerBarreraSalir;
-    private CyclicBarrier cuartaBarreraSalir;
-    private CyclicBarrier quintaBarreraSalir;
     private Random aleatorio;
     private MedioElevacion[] medios;
     private Silla[] sillas;
+    private Curso[] cursos;
 
     public CentroEsqui(Confiteria unaConfi) {
         //Constructor
@@ -56,70 +42,48 @@ public class CentroEsqui {
         this.aleatorio = new Random();
         this.cerrojo = new ReentrantLock(true);
         this.estudiantes = cerrojo.newCondition();
-        this.intructores = cerrojo.newCondition();
+        this.instructores = cerrojo.newCondition();
         this.entradaEsquiadores = false;
         this.entradaInstructores = false;
-        this.cantPrimerClase = 0;
-        this.cantSegClase = 0;
-        this.cantTercerClase = 0;
-        this.cantCuartaClase = 0;
-        this.cantQuintaClase = 0;
-        this.cantPersonasPrimerElevador = 0;//cantidad de esquiadores que ultilizaron el primer medio de elevacion
-        this.cantPersonasSegundoElevador = 0;//cantidad de esquiadores que ultilizaron el segundo medio de elevacion
-        this.cantPersonasTercerElevador = 0;//cantidad de esquiadores que ultilizaron el tercer medio de elevacion
-        this.cantPersonasCuartoElevador = 0;//cantidad de esquiadores que ultilizaron el cuarto medio de elevacion
-        this.primerBarrera = new CyclicBarrier(5);
-        this.segundaBarrera = new CyclicBarrier(5);
-        this.tercerBarrera = new CyclicBarrier(5);
-        this.cuartaBarrera = new CyclicBarrier(5);
-        this.quintaBarrera = new CyclicBarrier(5);
-        this.primerBarreraSalir = new CyclicBarrier(5);
-        this.segundaBarreraSalir = new CyclicBarrier(5);
-        this.tercerBarreraSalir = new CyclicBarrier(5);
-        this.cuartaBarreraSalir = new CyclicBarrier(5);
-        this.quintaBarreraSalir = new CyclicBarrier(5);
-        this.sillas = new Silla[4];
+        this.medios = new MedioElevacion[4];
+        this.cursos = new Curso[5];
+        this.crearMediosElevacion();
+        this.crearCursos();
     }
 
-    public void entradaAlCentro() throws InterruptedException {
+    public synchronized void entradaAlCentro() throws InterruptedException {
         //Metodo en el cual los hilos esquiadores esperan la apertura del centro de esqui
         while (!this.entradaEsquiadores) {//los esquiadores esperan hasta que se abra el centro de esqui
             this.wait();
         }
     }
-    public void crearMediosElevacion(){
-        
+
+    public void crearMediosElevacion() {
+        //Metodo para crear los medios de elevación en el arreglo de medios
+        for (int i = 0; i < medios.length; i++) {
+            medios[i] = new MedioElevacion((i + 1), this);
+
+        }
     }
 
-    public synchronized void sillasElevadoras(int id, boolean pase, int idSilla) throws InterruptedException {
-        //Metodo de las sillas elevadoras
+    public void crearCursos() {
+        //Metodo para crear las clases donde los esquiadores tomaran cursos
+        for (int i = 0; i < cursos.length; i++) {
+            cursos[i] = new Curso((i + 1));
+
+        }
+    }
+
+    public synchronized void accederMedio(int id, boolean pase, int idMedio) throws InterruptedException {
+        //Metodo donde se verifica que los esquiadores tenga el pase para poder acceder a los medios
         if (pase) {//Se verifica si el esquiador tiene un pase para acceder a los molinetes
-            switch (idSilla) {//segun la eleccion del medio de elevación
-                case 1: {
-                    medios[0].darAcceso(id);
-                    medios[0].salirMedio();
-                    break;
-                }
-                case 2: {
-                    medios[1].darAcceso(id);
-                    medios[1].salirMedio();
-                    break;
-                }
-                case 3: {
-                    medios[2].darAcceso(id);
-                    medios[2].salirMedio();
-                    break;
-                }
-                case 4: {
-                    medios[3].darAcceso(id);
-                    medios[3].salirMedio();
-                    break;
-                }
-            }
+            medios[idMedio].darAcceso(id);
+            medios[idMedio].salirMedio();
+        } else {
+            System.out.println("El esquiador " + id + " no tiene un pase");
         }
 
-    
-    
+    }
 
     public void abrirAccesosMedioElevacion() {
         //Modulo para permitir acceder a los medios de elevacion
@@ -132,186 +96,39 @@ public class CentroEsqui {
         System.out.println("Se cierra el acceso a los medios de elevacion");
 
     }
-
-    public int entrarCurso() throws InterruptedException {
+      //Curso de esqui
+    public int busquedaCurso() throws InterruptedException {
         //Metodo que en el cual los esquiadores buscan algun curso de esqui que no este lleno
-        //Si encuentran uno se les da un Identificador que es el numero de aula al cual estan asignados sino se les devuelve el 0
-        int claseAsignada = 0, CANTMAX = 4, PRIMERAULA = 1, SEGUNDAAULA = 2, TERCERAULA = 3, CUARTAAULA = 4, QUINTAAULA = 5;
+        //Si encuentran uno se les da un Identificador que es el numero de aula al cual estan asignados sino se les devuelve el 5
+        int claseAsignada = 0, CANTMAX = 4;//, PRIMERAULA = 1, SEGUNDAAULA = 2, TERCERAULA = 3, CUARTAAULA = 4, QUINTAAULA = 5;
+        boolean condicionDeSalida = true;
         try {
             this.cerrojo.lock();
-            if (cantPrimerClase < CANTMAX) {
-                this.cantPrimerClase++;
-                claseAsignada = PRIMERAULA;
-                if (cantPrimerClase == CANTMAX) {
-                    this.intructores.signal();
+            while (claseAsignada < cursos.length && condicionDeSalida) {
+                if (cursos[claseAsignada].getCantidadCurso() < CANTMAX) {
+                    cursos[claseAsignada].incrementarCantidadCurso();
+                    condicionDeSalida = false;
+                    if (cursos[claseAsignada].getCantidadCurso() == CANTMAX) {
+                        instructores.signal();
+                    }
                 }
-            } else {
-                if (cantSegClase < CANTMAX) {
-                    this.cantSegClase++;
-                    claseAsignada = SEGUNDAAULA;
-                    if (cantSegClase == CANTMAX) {
-                        this.intructores.signal();
-                    }
-                } else {
-                    if (cantTercerClase < CANTMAX) {
-                        this.cantTercerClase++;
-                        claseAsignada = TERCERAULA;
-                        if (cantTercerClase == CANTMAX) {
-                            this.intructores.signal();
-                            cantTercerClase = 0;
-                        }
-                    } else {
-                        if (cantCuartaClase < CANTMAX) {
-                            this.cantCuartaClase++;
-                            claseAsignada = CUARTAAULA;
-                            if (cantCuartaClase == CANTMAX) {
-                                this.intructores.signal();
-                            }
-                        } else {
-                            if (cantQuintaClase < CANTMAX) {
-                                this.cantQuintaClase++;
-                                claseAsignada = QUINTAAULA;
-                                if (cantQuintaClase == CANTMAX) {
-                                    this.intructores.signal();
-                                }
-                            }
-                        }
-                    }
+                else{
+                    claseAsignada++;
                 }
             }
-
+            
         } finally {
             cerrojo.unlock();
         }
         return claseAsignada;
     }
 
-    public boolean contratarPrimerClase(int id) throws InterruptedException {
-        //Metodo en el cual los esquiadores que desean tomar clases de esqui esperan a ser atendidos o desistan de tomar la clase        
-        boolean cursoCompleto = true;
-        try {
-            if (primerBarrera.isBroken()) {//Se verifica si la barrera se rompio porque no se formó el grupo
-                cursoCompleto = false;
-            } else {
-                primerBarrera.await(2000, TimeUnit.MILLISECONDS);//Los esquiadores esperan un tiempo hasta que este el grupo armado, sino desisten de tomar la clase
-            }
-        } catch (TimeoutException e) {
-            //Codigo cuando el tiempo para armar el grupo finalizo y no estan todos los integrantes
-            System.out.println("No hay demasiados integrantes en la primer clase y los estudiantes se fueron ");
-            primerBarrera.reset();
-            cantPrimerClase = 0;
-        } catch (BrokenBarrierException e) {
-            //Codigo cuando se pudo armar el grupo
-        }
-        return cursoCompleto;
+    public boolean entrarCurso(int idCurso, int idEsquiador) {
+        return cursos[idCurso].contratarCurso(idEsquiador);
+        
     }
-
-    public boolean contratarSegundaClase(int id) throws InterruptedException {
-        //Metodo en el cual los esquiadores que desean tomar clases de esqui esperan a ser atendidos o desistan de tomar la clase        
-        boolean cursoCompleto = true;
-        try {
-            if (segundaBarrera.isBroken()) {//Se verifica si la barrera se rompio porque no se formó el grupo
-                cursoCompleto = false;
-            } else {
-                segundaBarrera.await(2000, TimeUnit.MILLISECONDS);//Los esquiadores esperan un tiempo hasta que este el grupo armado, sino desisten de tomar la clase
-            }
-        } catch (TimeoutException e) {
-            //Codigo cuando el tiempo para armar el grupo finalizo y no estan todos los integrantes
-            System.out.println("No hay demasiados integrantes en la segunda clase y los estudiantes se fueron");
-            cantSegClase = 0;
-            segundaBarrera.reset();
-        } catch (BrokenBarrierException e) {
-            //Codigo cuando se pudo armar el grupo
-        }
-        return cursoCompleto;
-    }
-
-    public boolean contratarTercerClase(int id) throws InterruptedException {
-        //Metodo en el cual los esquiadores que desean tomar clases de esqui esperan a ser atendidos o desistan de tomar la clase        
-        boolean cursoCompleto = true;
-        try {
-            tercerBarrera.await(2000, TimeUnit.MILLISECONDS);//Los esquiadores esperan un tiempo hasta que este el grupo armado, sino desisten de tomar la clase
-
-        } catch (TimeoutException e) {
-            //Codigo cuando el tiempo para armar el grupo finalizo y no estan todos los integrantes
-            System.out.println("No hay demasiados integrantes en la tercer clase y los estudiantes se fueron ");
-            this.cantTercerClase = 0;
-            this.tercerBarrera.reset();
-        } catch (BrokenBarrierException e) {
-            //Codigo cuando se pudo armar el grupo
-        }
-        return cursoCompleto;
-    }
-
-    public boolean contratarCuartaClase(int id) throws InterruptedException {
-        //Metodo en el cual los esquiadores que desean tomar clases de esqui esperan a ser atendidos o desistan de tomar la clase        
-        boolean cursoCompleto = true;
-        try {
-            if (cuartaBarrera.isBroken()) {//Se verifica si la barrera se rompio porque no se formó el grupo
-                cursoCompleto = false;
-            } else {
-                cuartaBarrera.await(2000, TimeUnit.MILLISECONDS);//Los esquiadores esperan un tiempo hasta que este el grupo armado, sino desisten de tomar la clase
-            }
-        } catch (TimeoutException e) {
-            //Codigo cuando el tiempo para armar el grupo finalizo y no estan todos los integrantes
-            System.out.println("No hay demasiados integrantes en la cuarta clase y los estudiantes se fueron ");
-            cantCuartaClase = 0;
-            cuartaBarrera.reset();
-        } catch (BrokenBarrierException e) {
-            //Codigo cuando se pudo armar el grupo
-        }
-        return cursoCompleto;
-    }
-
-    public boolean contratarQuintaClase(int id) throws InterruptedException {
-        //Metodo en el cual los esquiadores que desean tomar clases de esqui esperan a ser atendidos o desistan de tomar la clase        
-        boolean cursoCompleto = true;
-        try {
-            if (quintaBarrera.isBroken()) {//Se verifica si la barrera se rompio porque no se formó el grupo
-                cursoCompleto = false;
-            } else {
-                quintaBarrera.await(6000, TimeUnit.MILLISECONDS);//Los esquiadores esperan un tiempo hasta que este el grupo armado, sino desisten de tomar la clase
-            }
-        } catch (TimeoutException e) {
-            //Codigo cuando el tiempo para armar el grupo finalizo y no estan todos los integrantes
-            System.out.println("No hay demasiados integrantes en la cuarta clase y los estudiantes se fueron ");
-            cantQuintaClase = 0;
-            quintaBarrera.reset();
-        } catch (BrokenBarrierException e) {
-            //Codigo cuando se pudo armar el grupo
-        }
-        return cursoCompleto;
-    }
-
-    public void salirCurso(int id, int clase) throws InterruptedException {
-        //Modulo que simula la silada de los alumnos del curso
-        try {
-            switch (clase) {
-                case 1: {
-                    this.primerBarreraSalir.await();
-                    break;
-                }
-                case 2: {
-                    this.segundaBarreraSalir.await();
-                    break;
-                }
-                case 3: {
-                    this.tercerBarreraSalir.await();
-                    break;
-                }
-                case 4: {
-                    this.cuartaBarreraSalir.await();
-                    break;
-                }
-                case 5: {
-                    this.quintaBarreraSalir.await();
-                    break;
-                }
-            }
-            System.out.println("El esquiador " + id + " salio del curso de esqui");
-        } catch (BrokenBarrierException e) {
-            e.printStackTrace();
-        }
+    public void salirCurso(int idCurso, int idEsquiador){
+        cursos[idCurso].salirCurso(idEsquiador);
     }
 
     public void cabinaInstructores(String nombre) {
@@ -319,7 +136,7 @@ public class CentroEsqui {
         try {
             this.cerrojo.lock();
             while (!this.entradaInstructores) {
-                this.intructores.await();
+                this.instructores.await();
             }
             System.out.println("El instructor " + nombre + " esta por dar una clase de esqui");
         } catch (InterruptedException e) {
@@ -331,71 +148,24 @@ public class CentroEsqui {
 
     public synchronized int buscarNumClase(String nombre) throws InterruptedException, BrokenBarrierException {
         //Metodo en el cual los instructores reciben el numero de clase al que deben acudir
-        int claseAsignada = 0;
-        if (this.cantPrimerClase == 4) {
-            cantPrimerClase++;
-            claseAsignada = 1;
-            this.primerBarrera.await();
-        } else {
-            if (this.cantSegClase == 4) {
-                cantSegClase++;
-                claseAsignada = 2;
-                this.segundaBarrera.await();
-            } else {
-                if (this.cantTercerClase == 4) {
-                    cantTercerClase++;
-                    claseAsignada = 3;
-                    this.tercerBarrera.await();
-                } else {
-                    if (this.cantCuartaClase == 4) {
-                        cantCuartaClase++;
-                        claseAsignada = 4;
-                        this.cuartaBarrera.await();
-                    } else {
-                        if (this.cantQuintaClase == 4) {
-                            cantQuintaClase++;
-                            claseAsignada = 5;
-                            this.quintaBarrera.await();
-                        }
-                    }
-                }
+        int claseAsignada = 0,CANTMAX=4;
+        boolean condicionDeSalida=true;
+        while (claseAsignada < cursos.length && condicionDeSalida) {
+            if (cursos[claseAsignada].getCantidadCurso() == CANTMAX) {
+                condicionDeSalida = false;
+                /* El instructor incrementa de nuevo el contador de alumnos 
+                del curso para que otro instructor no fuera a ir al mismo curso*/
+                cursos[claseAsignada].incrementarCantidadCurso();
+            }
+            else{
+                claseAsignada++;
             }
         }
-        System.out.println("Al instructor " + nombre + " se le asigno el aula n° " + claseAsignada);
+        
         return claseAsignada;
     }
-
-    public void terminarCurso(String nom, int clase) throws InterruptedException {
-        /*Los Intructores terminan de dar el curso y dejan salir a los alumnos de la clase.
-        La variable clase es el "aula" o clase que le toco al instructor */
-
-        try {
-            System.out.println("El instructor " + nom + " termino de dar el curso de esqui");
-            switch (clase) {
-                case 1: {
-                    this.primerBarreraSalir.await();
-                    break;
-                }
-                case 2: {
-                    this.segundaBarreraSalir.await();
-                    break;
-                }
-                case 3: {
-                    this.tercerBarreraSalir.await();
-                    break;
-                }
-                case 4: {
-                    this.cuartaBarreraSalir.await();
-                    break;
-                }
-                case 5: {
-                    this.quintaBarreraSalir.await();
-                    break;
-                }
-            }
-        } catch (BrokenBarrierException e) {
-            e.printStackTrace();
-        }
+    public void terminarCurso(String nombre, int numCurso){
+        cursos[numCurso].terminarCurso(nombre);
     }
 
 //Confiteria
@@ -412,7 +182,7 @@ public class CentroEsqui {
 
     //getters and setters
     public void abrirEntradaInstructores() {
-        //EL hilo tiempo en determinada hora deja trabajar a los instructores
+        //El hilo tiempo en determinada hora deja trabajar a los instructores
         this.entradaInstructores = true;
     }
 
@@ -429,27 +199,17 @@ public class CentroEsqui {
 
     public void cerrarEntradaEsquiadores() {
         /*Metodo en el cual se cierra el acceso al centro de esqui, se muestra la cantidad de personas
-        que utilizo cada molinete*/
+        que utilizo cada medio y se restable a cero el contador de personas de cada medio de elevacion*/
         this.entradaEsquiadores = false;
-        System.out.println("Uso de medios de elevacion: \n"
-                + "     Primer medio de elevacion: " + this.cantPersonasPrimerElevador + "\n"
-                + "     Segundo medio de elevacion: " + this.cantPersonasSegundoElevador + "\n"
-                + "     Tercer medio de elevacion: " + this.cantPersonasTercerElevador + "\n"
-                + "     Cuarto medio de elevacion: " + this.cantPersonasCuartoElevador);
-        this.cantPersonasPrimerElevador = 0;//Se reestablecen los valores a cero
-        this.cantPersonasSegundoElevador = 0;
-        this.cantPersonasTercerElevador = 0;
-        this.cantPersonasCuartoElevador = 0;
-        this.cantPrimerClase = 0;
-        this.cantSegClase = 0;
-        this.cantTercerClase = 0;
-        this.cantCuartaClase = 0;
-        this.cantQuintaClase = 0;
-        primerBarrera.reset();
-        segundaBarrera.reset();
-        tercerBarrera.reset();
-        cuartaBarrera.reset();
-        quintaBarrera.reset();
+
+        System.out.println("Uso de medios de elevacion: ");
+        for (int i = 0; i < medios.length; i++) {
+            System.out.println("Medio de elevacion N°" + (i + 1) + " : " + this.medios[i].getCantidadPersonas());
+            medios[i].resetearContadorpersonas();//Se reestablecen los valores de cada contador de personas a cero
+        }
+        for(int j=0;j<cursos.length;j++){
+            cursos[j].reiniciarCantidad();
+        }
     }
 
     public boolean getEntradaInstructores() {

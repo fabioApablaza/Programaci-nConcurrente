@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author user
+ * @author Apablaza Fabio FAI - 2039
  */
 public class Instructor implements Runnable {
 
@@ -40,17 +40,20 @@ public class Instructor implements Runnable {
 
     @Override
     public void run() {
-        while(true){
-        int numClase;
-        try {
-            unCentro.cabinaInstructores(nombre);
-            numClase = unCentro.buscarNumClase(nombre);
-            enseñar();
-            unCentro.terminarCurso(nombre, numClase);
-        } catch (InterruptedException | BrokenBarrierException ex) {
-            Logger.getLogger(Instructor.class.getName()).log(Level.SEVERE, null, ex);
+        while (true) {
+            int numClase;
+            try {
+                unCentro.cabinaInstructores(nombre);
+                numClase = unCentro.buscarNumClase(nombre);
+                if (numClase < 5) {
+                    System.out.println("Al instructor " + nombre + " se le asigno el aula n° " + (numClase + 1));
+                    enseñar();
+                    unCentro.terminarCurso(nombre, numClase);
+                }
+            } catch (InterruptedException | BrokenBarrierException ex) {
+                Logger.getLogger(Instructor.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
-        }
-        
+
     }
 }

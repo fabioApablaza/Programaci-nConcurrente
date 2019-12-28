@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author Apablaza
+ * @author Apablaza Fabio FAI - 2039
  */
 public class Silla implements Runnable {
 
@@ -20,7 +20,7 @@ public class Silla implements Runnable {
 
     //Constructor
     public Silla(int id, MedioElevacion unMed) {
-        this.identificacion = id;
+        this.identificacion = id;//identificación de la silla
         this.unMedio = unMed;
     }
 

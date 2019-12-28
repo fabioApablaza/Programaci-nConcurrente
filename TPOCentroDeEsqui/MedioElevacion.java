@@ -16,27 +16,45 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author Apablaza
+ * @author Apablaza Fabio FAI - 2039
  */
 public class MedioElevacion {
 
     private int identificacion;// Identifiacion del medio de elevacion
+    private int cantidadPersonas;// Variable para contar cuantos esquiadores pasaron por este medio de elevacion
     private CentroEsqui unCentroEsqui;//Recurso Compartido
     private Semaphore molinete;// Semaphoro que simulara a los molinetes que dejaran pasar a los n esquiadores
-    private int cantidadPersonas;// Variable para contar cuantos esquiadores pasaron por este medio de elevacion
     private ReentrantLock cerrojo;// Cerrojo para sincronizar la suma de los esquiadores que usaron este medio de elevacion
     private CyclicBarrier barreraEntrada;
     private CyclicBarrier barreraSalida;
+    private Silla[] sillasElevadoras;
     private boolean condicionSilla;
+    private Thread[] hilosSillas;
 
     //Contructor
     public MedioElevacion(int id, CentroEsqui unCent) {
         this.identificacion = id;
-        this.unCentroEsqui = unCent;
         this.cantidadPersonas = 0;
+        this.unCentroEsqui = unCent;
+        this.cerrojo= new ReentrantLock(true);     
         this.condicionSilla = true;
+        this.molinete = new Semaphore(id, true);
+        this.barreraEntrada = new CyclicBarrier(id);
+        this.barreraSalida = new CyclicBarrier(id + 1);//se suma uno ya que se debe contar ademas de los N esquiadores al hilo Silla
+        this.sillasElevadoras= new Silla[id];
+        this.hilosSillas= new Thread[this.identificacion];
+        crearSillasElevadoras();
     }
-
+    //Cada medio tiene una cantidad determinadas de sillas elevadoras que dependen de la cantidad de molinetes que tenga    
+    private void crearSillasElevadoras() {
+        //Metodo para crear los hilos sillas e inicializarlos
+        for(int i=0;i<this.sillasElevadoras.length;i++){
+            this.sillasElevadoras[i]= new Silla((i+1),this);
+            this.hilosSillas[i]=new Thread(this.sillasElevadoras[i]);
+            this.hilosSillas[i].start();
+            
+        }
+    }
     public synchronized void esperaDeSilla() throws InterruptedException {
         //El hilo silla esperara aqui hasta que sus lugares esten ocupados por esquiadores
         while (this.condicionSilla) {
@@ -61,7 +79,7 @@ public class MedioElevacion {
         
         try {
             System.out.println("El esquiador " + idEsquiador + " esta queriendo acceder a los molinetes del medio numero " + this.identificacion);
-
+            //Simulación de los molinetes de cada medio de elevación
             this.molinete.acquire();//Se dejan pasar n esquiadores                
             System.out.println("El esquiador " + idEsquiador + " paso por los molinetes del medio numero " + this.identificacion);
 
@@ -73,8 +91,8 @@ public class MedioElevacion {
                 this.notify();
             }
             this.cerrojo.unlock();
-
-            barreraEntrada.await(2000, TimeUnit.MILLISECONDS);//Barrera en la cual esperan los esquiadores               
+            /*Barrera en la cual esperan los esquiadores a que entren */
+            barreraEntrada.await(2000, TimeUnit.MILLISECONDS);               
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -90,7 +108,7 @@ public class MedioElevacion {
         //Los esquiadores esperan a que el hilo silla termina de transportarlos
         try {
             this.barreraSalida.await();//los esquiadores esperan aqui
-            this.molinete.release();//liberan los permisos de los molinetes para que otros esquiadores puedan pasar
+            this.molinete.release();//liberan los permisos de los molinetes para que otros esquiadores puedan salir del medio
         } catch (BrokenBarrierException ex) {
             Logger.getLogger(MedioElevacion.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -105,14 +123,11 @@ public class MedioElevacion {
         this.cantidadPersonas = 0;
     }
 
-    public void abrirMedio(int permisos) {
-        this.molinete = new Semaphore(permisos, true);
-        this.barreraEntrada = new CyclicBarrier(permisos);
-        this.barreraSalida = new CyclicBarrier(permisos + 1);//se suma uno ya que se debe contar ademas de los N esquiadores al hilo Silla
-
-    }
+    
 
     public void cerrarMedio() {
         this.molinete.drainPermits();
     }
+
+    
 }

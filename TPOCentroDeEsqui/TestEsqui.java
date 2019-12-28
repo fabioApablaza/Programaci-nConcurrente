@@ -6,7 +6,7 @@
 package TPOCentroDeEsqui;
 /**
  *
- * @author user
+ * @author Apablaza Fabio FAI - 2039
  */
 public class TestEsqui {
     public static void main(String[]args){
