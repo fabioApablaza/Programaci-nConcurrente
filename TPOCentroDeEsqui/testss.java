@@ -12,6 +12,7 @@ import java.util.Random;
 public class testss {
     public static void main(String[]args){
         Random postre = new Random();
-        System.out.println(postre.nextInt(2));
+        System.out.println(postre.nextInt(4));
+        System.out.println((int)(Math.random()*7+1));
     }
 }

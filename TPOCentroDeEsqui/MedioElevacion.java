@@ -10,6 +10,7 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,7 +25,9 @@ public class MedioElevacion {
     private int cantidadPersonas;// Variable para contar cuantos esquiadores pasaron por este medio de elevacion
     private CentroEsqui unCentroEsqui;//Recurso Compartido
     private Semaphore molinete;// Semaphoro que simulara a los molinetes que dejaran pasar a los n esquiadores
+    private Semaphore mutex;
     private ReentrantLock cerrojo;// Cerrojo para sincronizar la suma de los esquiadores que usaron este medio de elevacion
+    private Condition colaSilla;
     private CyclicBarrier barreraEntrada;
     private CyclicBarrier barreraSalida;
     private Silla[] sillasElevadoras;
@@ -36,37 +39,50 @@ public class MedioElevacion {
         this.identificacion = id;
         this.cantidadPersonas = 0;
         this.unCentroEsqui = unCent;
-        this.cerrojo= new ReentrantLock(true);     
+        this.cerrojo = new ReentrantLock(true);
+        this.colaSilla = cerrojo.newCondition();
         this.condicionSilla = true;
         this.molinete = new Semaphore(id, true);
+        this.mutex= new Semaphore(1);
         this.barreraEntrada = new CyclicBarrier(id);
         this.barreraSalida = new CyclicBarrier(id + 1);//se suma uno ya que se debe contar ademas de los N esquiadores al hilo Silla
-        this.sillasElevadoras= new Silla[id];
-        this.hilosSillas= new Thread[this.identificacion];
+        this.sillasElevadoras = new Silla[id];
+        this.hilosSillas = new Thread[this.identificacion];
         crearSillasElevadoras();
     }
+
     //Cada medio tiene una cantidad determinadas de sillas elevadoras que dependen de la cantidad de molinetes que tenga    
     private void crearSillasElevadoras() {
         //Metodo para crear los hilos sillas e inicializarlos
-        for(int i=0;i<this.sillasElevadoras.length;i++){
-            this.sillasElevadoras[i]= new Silla((i+1),this);
-            this.hilosSillas[i]=new Thread(this.sillasElevadoras[i]);
+        for (int i = 0; i < this.sillasElevadoras.length; i++) {
+            this.sillasElevadoras[i] = new Silla((i + 1), this);
+            this.hilosSillas[i] = new Thread(this.sillasElevadoras[i]);
             this.hilosSillas[i].start();
-            
+
         }
     }
-    public synchronized void esperaDeSilla() throws InterruptedException {
-        //El hilo silla esperara aqui hasta que sus lugares esten ocupados por esquiadores
-        while (this.condicionSilla) {
-            this.wait();
+
+    public void esperaDeSilla() throws InterruptedException {
+        /*Los hilos silla esperaran aqui hasta que sus lugares esten ocupados por esquiadores
+        pero solamente de a una silla por vez*/
+        try {
+            this.cerrojo.lock();
+            while (this.condicionSilla) {
+                this.colaSilla.await();
+            }
+        } finally {
+            this.cerrojo.unlock();
         }
         System.out.println("La silla del medio de elevacion numero " + this.identificacion + " esta transportando a los esquiadores");
     }
 
     public void liberarEsquiadores() {
-        //Despues de simular el transporte de los esquiadores las sillas deberan liberar a los esquiadores de la espera
+        /*Posterior de simular el transporte de los esquiadores las sillas deberan liberar a los esquiadores de la espera
+        osea la barrera de seguridad se levanta y deja bajar a los esquiadores*/
+
         try {
             this.barreraSalida.await();//Los esquiadores transportados por la silla esperaran aqui hasta que el hilo silla los libere
+            System.out.println("La silla del medio N° "+identificacion+" libero a los esquiadores");
             this.condicionSilla = true;
         } catch (InterruptedException ex) {
             Logger.getLogger(MedioElevacion.class.getName()).log(Level.SEVERE, null, ex);
@@ -76,7 +92,7 @@ public class MedioElevacion {
     }
 
     public void darAcceso(int idEsquiador) {
-        
+
         try {
             System.out.println("El esquiador " + idEsquiador + " esta queriendo acceder a los molinetes del medio numero " + this.identificacion);
             //Simulación de los molinetes de cada medio de elevación
@@ -88,11 +104,11 @@ public class MedioElevacion {
 
             if (this.molinete.availablePermits() == 0) {//Se verifica que esten ocupados todos los lugares de la silla, para poder despertar al hilo silla
                 this.condicionSilla = false;
-                this.notify();
+                this.colaSilla.signal();
             }
             this.cerrojo.unlock();
             /*Barrera en la cual esperan los esquiadores a que entren */
-            barreraEntrada.await(2000, TimeUnit.MILLISECONDS);               
+            barreraEntrada.await(2000, TimeUnit.MILLISECONDS);
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -104,10 +120,11 @@ public class MedioElevacion {
         }
     }
 
-    public void salirMedio() throws InterruptedException {
+    public void salirMedio(int idEsquiador) throws InterruptedException {
         //Los esquiadores esperan a que el hilo silla termina de transportarlos
         try {
             this.barreraSalida.await();//los esquiadores esperan aqui
+            System.out.println("El esquiador "+idEsquiador+" salio del medio N° "+identificacion);
             this.molinete.release();//liberan los permisos de los molinetes para que otros esquiadores puedan salir del medio
         } catch (BrokenBarrierException ex) {
             Logger.getLogger(MedioElevacion.class.getName()).log(Level.SEVERE, null, ex);
@@ -123,11 +140,8 @@ public class MedioElevacion {
         this.cantidadPersonas = 0;
     }
 
-    
-
     public void cerrarMedio() {
         this.molinete.drainPermits();
     }
 
-    
 }

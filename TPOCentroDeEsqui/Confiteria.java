@@ -46,7 +46,7 @@ public class Confiteria {
         this.notify();
     }
 
-    public synchronized int entrarCaja(int idEsquiador) throws InterruptedException {
+    public int entrarCaja(int idEsquiador) throws InterruptedException {
         //Metodo en el cual los esquiadores simulan pasar por la caja
         int postre;
         this.caja.acquire();//Un solo esquiador por vez paga por caja

@@ -27,7 +27,7 @@ public class Silla implements Runnable {
     public void transportar() {
         //Simulacion del transporte de los esquiadores
         try {
-            System.out.println("La silla numero " + identificacion + " esta tranpsortando a esquiadores");
+            System.out.println("La silla numero " + identificacion + " esta transportando a esquiadores");
             Thread.sleep(2000);
         } catch (InterruptedException ex) {
             Logger.getLogger(Silla.class.getName()).log(Level.SEVERE, null, ex);

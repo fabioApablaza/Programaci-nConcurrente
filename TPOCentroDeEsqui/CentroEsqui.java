@@ -23,17 +23,11 @@ public class CentroEsqui {
 
     private Confiteria unaConfiteria;
     private Lock cerrojo;
-    private boolean entradaInstructores;
-    private boolean entradaEsquiadores;
-    private int cantSegClase;
-    private int cantTercerClase;
-    private int cantCuartaClase;
-    private int cantQuintaClase;
+    private boolean entradaInstructores, entradaEsquiadores, entradaMedios;
     private Condition instructores;
     private Condition estudiantes;
     private Random aleatorio;
     private MedioElevacion[] medios;
-    private Silla[] sillas;
     private Curso[] cursos;
 
     public CentroEsqui(Confiteria unaConfi) {
@@ -43,6 +37,7 @@ public class CentroEsqui {
         this.cerrojo = new ReentrantLock(true);
         this.estudiantes = cerrojo.newCondition();
         this.instructores = cerrojo.newCondition();
+        this.entradaMedios = false;
         this.entradaEsquiadores = false;
         this.entradaInstructores = false;
         this.medios = new MedioElevacion[4];
@@ -74,13 +69,15 @@ public class CentroEsqui {
         }
     }
 
-    public synchronized void accederMedio(int id, boolean pase, int idMedio) throws InterruptedException {
+    public void accederMedio(int idEsquiador, boolean pase, int idMedio) throws InterruptedException {
         //Metodo donde se verifica que los esquiadores tenga el pase para poder acceder a los medios
-        if (pase) {//Se verifica si el esquiador tiene un pase para acceder a los molinetes
-            medios[idMedio].darAcceso(id);
-            medios[idMedio].salirMedio();
-        } else {
-            System.out.println("El esquiador " + id + " no tiene un pase");
+        if (this.entradaMedios) {
+            if (pase) {//Se verifica si el esquiador tiene un pase para acceder a los molinetes
+                medios[idMedio].darAcceso(idEsquiador);
+                medios[idMedio].salirMedio(idEsquiador);
+            } else {
+                System.out.println("El esquiador " + idEsquiador + " no tiene un pase");
+            }
         }
 
     }
@@ -88,15 +85,17 @@ public class CentroEsqui {
     public void abrirAccesosMedioElevacion() {
         //Modulo para permitir acceder a los medios de elevacion
         System.out.println("Se abre el acceso a los medios de elevacion");
+        this.entradaMedios=true;
 
     }
 
     public void cerrarAccesoMedioElevacion() {
         //Modulo para cerrar el acceso a los medios de elevacion
         System.out.println("Se cierra el acceso a los medios de elevacion");
-
+        this.entradaMedios=false;
     }
-      //Curso de esqui
+    //Curso de esqui
+
     public int busquedaCurso() throws InterruptedException {
         //Metodo que en el cual los esquiadores buscan algun curso de esqui que no este lleno
         //Si encuentran uno se les da un Identificador que es el numero de aula al cual estan asignados sino se les devuelve el 5
@@ -111,12 +110,11 @@ public class CentroEsqui {
                     if (cursos[claseAsignada].getCantidadCurso() == CANTMAX) {
                         instructores.signal();
                     }
-                }
-                else{
+                } else {
                     claseAsignada++;
                 }
             }
-            
+
         } finally {
             cerrojo.unlock();
         }
@@ -125,9 +123,10 @@ public class CentroEsqui {
 
     public boolean entrarCurso(int idCurso, int idEsquiador) {
         return cursos[idCurso].contratarCurso(idEsquiador);
-        
+
     }
-    public void salirCurso(int idCurso, int idEsquiador){
+
+    public void salirCurso(int idCurso, int idEsquiador) {
         cursos[idCurso].salirCurso(idEsquiador);
     }
 
@@ -148,29 +147,29 @@ public class CentroEsqui {
 
     public synchronized int buscarNumClase(String nombre) throws InterruptedException, BrokenBarrierException {
         //Metodo en el cual los instructores reciben el numero de clase al que deben acudir
-        int claseAsignada = 0,CANTMAX=4;
-        boolean condicionDeSalida=true;
+        int claseAsignada = 0, CANTMAX = 4;
+        boolean condicionDeSalida = true;
         while (claseAsignada < cursos.length && condicionDeSalida) {
             if (cursos[claseAsignada].getCantidadCurso() == CANTMAX) {
                 condicionDeSalida = false;
                 /* El instructor incrementa de nuevo el contador de alumnos 
                 del curso para que otro instructor no fuera a ir al mismo curso*/
                 cursos[claseAsignada].incrementarCantidadCurso();
-            }
-            else{
+            } else {
                 claseAsignada++;
             }
         }
-        
+
         return claseAsignada;
     }
-    public void terminarCurso(String nombre, int numCurso){
+
+    public void terminarCurso(String nombre, int numCurso) {
         cursos[numCurso].terminarCurso(nombre);
     }
 
 //Confiteria
     public void entradaConfiteria(int idEsquiador) throws InterruptedException {
-        this.unaConfiteria.entrarConfiteria();//EL esquiador entra a la confiteria
+        this.unaConfiteria.entrarConfiteria();//El esquiador entra a la confiteria
         if (this.unaConfiteria.entrarCaja(idEsquiador) == 1) {//El esquiador decide si comprar postre o no
             this.unaConfiteria.entrarMostradorComidaRapida(idEsquiador);
             this.unaConfiteria.entrarMostradorPostre(idEsquiador);
@@ -207,7 +206,7 @@ public class CentroEsqui {
             System.out.println("Medio de elevacion N°" + (i + 1) + " : " + this.medios[i].getCantidadPersonas());
             medios[i].resetearContadorpersonas();//Se reestablecen los valores de cada contador de personas a cero
         }
-        for(int j=0;j<cursos.length;j++){
+        for (int j = 0; j < cursos.length; j++) {
             cursos[j].reiniciarCantidad();
         }
     }
