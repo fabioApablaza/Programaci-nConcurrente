@@ -76,17 +76,24 @@ public class Esquiador implements Runnable {
         int decision;
         try {
             while (true) {
-                decision = desicion.nextInt(7 - 5) + 5;
-
+                decision = desicion.nextInt(3)+1;
+                
                 unCentro.entradaAlCentro();//Los esquiadores entran al centro de esqui
 
                 switch (1) {
                     case 1: {//los esquiadores deciden subir por el primer medio de elevacion
+                        //Mediante un Random se calcula un numero entre el 0 y 3 para acceder a cualquier medio
                         decision = desicion.nextInt(4);
-                        unCentro.accederMedio(id, pase, decision);
-                        if (pase) {
-                            esquiando();
-                            descansar();
+                        unCentro.entradaMedios();//Cola de espera para los medios
+                        /*Esto se hace para que no quede ningun esquiador 
+                        atrapado despues de que se cierran los medios de elevacion*/
+                        if (unCentro.getEntradaMedios()) {
+                            unCentro.accederMedio(id, pase, decision);
+                            if (pase) {
+                                esquiando();
+                                descansar();
+                            }
+
                         }
                         break;
                     }

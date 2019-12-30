@@ -23,8 +23,7 @@ public class MedioElevacion {
 
     private int identificacion;// Identifiacion del medio de elevacion
     private int cantidadPersonas;// Variable para contar cuantos esquiadores pasaron por este medio de elevacion
-    private CentroEsqui unCentroEsqui;//Recurso Compartido
-    private Semaphore molinete;// Semaphoro que simulara a los molinetes que dejaran pasar a los n esquiadores
+    private Semaphore molinete;// Semaforo que simulara a los molinetes que dejaran pasar a los n esquiadores
     private Semaphore mutex;
     private ReentrantLock cerrojo;// Cerrojo para sincronizar la suma de los esquiadores que usaron este medio de elevacion
     private Condition colaSilla;
@@ -38,7 +37,6 @@ public class MedioElevacion {
     public MedioElevacion(int id, CentroEsqui unCent) {
         this.identificacion = id;
         this.cantidadPersonas = 0;
-        this.unCentroEsqui = unCent;
         this.cerrojo = new ReentrantLock(true);
         this.colaSilla = cerrojo.newCondition();
         this.condicionSilla = true;
@@ -81,8 +79,9 @@ public class MedioElevacion {
         osea la barrera de seguridad se levanta y deja bajar a los esquiadores*/
 
         try {
-            this.barreraSalida.await();//Los esquiadores transportados por la silla esperaran aqui hasta que el hilo silla los libere
             System.out.println("La silla del medio N° "+identificacion+" libero a los esquiadores");
+            this.barreraSalida.await();//Los esquiadores transportados por la silla esperaran aqui hasta que el hilo silla los libere
+            
             this.condicionSilla = true;
         } catch (InterruptedException ex) {
             Logger.getLogger(MedioElevacion.class.getName()).log(Level.SEVERE, null, ex);
