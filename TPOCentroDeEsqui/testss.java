@@ -7,7 +7,7 @@ package TPOCentroDeEsqui;
 import java.util.Random;
 /**
  *
- * @author Apablaza
+ * @author Apablaza Fabio 2039
  */
 public class testss {
     public static void main(String[]args){

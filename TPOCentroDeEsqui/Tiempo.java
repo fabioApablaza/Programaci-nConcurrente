@@ -32,15 +32,14 @@ public class Tiempo implements Runnable {
                 this.horaDia++;
                 System.out.println("hora: " + horaDia);
                 switch (horaDia) {
-                    case 9:{
+                    case 9:{//Deja pasar a los hilos instructores y esquiadores
                         System.out.println("Se abre el acceso a los instructores");
                         unCentro.abrirEntradaInstructores();
-                        System.out.println("Se abre el acceso a los esquiadores");
+                      
                         unCentro.abrirEntradaEsquiadores();                        
                         break;
                     }
                     case 10: {
-                        System.out.println("Se abre el acceso a los medios de elevación");
                         this.unCentro.abrirAccesosMedioElevacion();//se abre el acceso a los medios de elevacion
                         break;
                     }

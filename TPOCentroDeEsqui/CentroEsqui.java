@@ -25,9 +25,7 @@ public class CentroEsqui {
 
     private Confiteria unaConfiteria;
     private Lock cerrojoCurso;
-    private Lock cerrojoMedios;
     private boolean entradaInstructores, entradaEsquiadores, entradaMedios;
-    private Condition esquiadores;
     private Condition instructores;
     private Condition estudiantes;
     private Random aleatorio;
@@ -39,8 +37,6 @@ public class CentroEsqui {
         this.unaConfiteria = unaConfi;
         this.aleatorio = new Random();
         this.cerrojoCurso = new ReentrantLock(true);
-        this.cerrojoMedios = new ReentrantLock(true);
-        this.esquiadores = cerrojoMedios.newCondition();
         this.estudiantes = cerrojoCurso.newCondition();
         this.instructores = cerrojoCurso.newCondition();
         this.entradaMedios = false;
@@ -81,7 +77,7 @@ public class CentroEsqui {
             while (!this.entradaMedios && this.entradaEsquiadores) {
                 /* se usan estas dos condiciones para poder liberar a los esquiadores que quedan atrapados */
                 try {
-                    /*Los esquiadores que quieran usar las sillas elevadoras
+                    /*Los esquiadores que quieran usar los medios de elevacion
                     tendran que esperar a que se abra los accesos a los mismos*/
                     this.wait();
                 } catch (InterruptedException ex) {

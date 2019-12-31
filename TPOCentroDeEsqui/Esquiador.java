@@ -88,7 +88,7 @@ public class Esquiador implements Runnable {
                         /*Esto se hace para que no quede ningun esquiador 
                         atrapado despues de que se cierran los medios de elevacion*/
                         if (unCentro.getEntradaMedios()) {
-                            unCentro.accederMedio(id, pase, decision);
+                            unCentro.accederMedio(id, pase, 0);
                             if (pase) {
                                 esquiando();
                                 descansar();
