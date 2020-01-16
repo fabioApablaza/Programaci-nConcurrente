@@ -1,2 +1,2 @@
-# Programaci-nConcurrente
-Esto debería haberlo hecho hace mucho tiempo
+# Trabajo Practico final de la materia programacion concurrente
+Centro de esqui
