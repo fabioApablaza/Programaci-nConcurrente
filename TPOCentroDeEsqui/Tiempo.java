@@ -33,14 +33,14 @@ public class Tiempo implements Runnable {
                 System.out.println("hora: " + horaDia);
                 switch (horaDia) {
                     case 9:{//Deja pasar a los hilos instructores y esquiadores
-                        System.out.println("Se abre el acceso a los instructores");
+                        System.out.println("Se abre el acceso a todos");
                         unCentro.abrirEntradaInstructores();
-                      
                         unCentro.abrirEntradaEsquiadores();                        
                         break;
                     }
                     case 10: {
-                        this.unCentro.abrirAccesosMedioElevacion();//se abre el acceso a los medios de elevacion
+                        //se abre el acceso a los medios de elevacion
+                        this.unCentro.abrirAccesosMedioElevacion();
                         break;
                     }
                     case 17: {
@@ -48,14 +48,11 @@ public class Tiempo implements Runnable {
                         this.unCentro.cerrarAccesoMedioElevacion();//se cierra el acceso a los medios de elevacion
                         break;
                     }
-                    case 15:{
+                    case 18:{//Se cierra el acceso a todos
                         System.out.println("Los instructores terminan su jornada laboral");
                         unCentro.cerrarEntradaInstructores();
-                        break;
-                    }
-                    case 22:{
                         System.out.println("Se cierra el complejo");
-                        unCentro.cerrarEntradaEsquiadores();
+                        unCentro.cerrarEntradaEsquiadores();                       
                         break;
                     }
                     case 24: {

@@ -26,7 +26,7 @@ public class TestEsqui {
     public static void crearInstructores(Instructor[] instructores,CentroEsqui unCentro){
         String[] nombres={"Carlos","Felipe","Ana","Isabel","Maria"};        
         for(int i=0;i<instructores.length;i++){
-            instructores[i]=new Instructor(nombres[i],unCentro);
+            instructores[i]=new Instructor(nombres[i],unCentro,i);
         }
     }
     public static void crearEsquiadores(Esquiador[] esquiadores,CentroEsqui unCentro){

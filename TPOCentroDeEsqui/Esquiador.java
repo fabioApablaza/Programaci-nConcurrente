@@ -52,8 +52,8 @@ public class Esquiador implements Runnable {
         int numClase = 0;
         boolean cursoCompleto = true;
         numClase = unCentro.busquedaCurso();
-        System.out.println("Esquiador " + id + " con clase " + (numClase + 1));
-        if (numClase != 5) {
+        if (numClase < 5) {
+            System.out.println("Esquiador " + id + " con clase " + (numClase + 1));
             cursoCompleto = unCentro.entrarCurso(numClase, id);
             if (cursoCompleto) {
                 unCentro.salirCurso(numClase, id);
@@ -80,7 +80,7 @@ public class Esquiador implements Runnable {
                 
                 unCentro.entradaAlCentro();//Los esquiadores entran al centro de esqui
 
-                switch (1) {
+                switch (decision) {
                     case 1: {//los esquiadores deciden subir por el primer medio de elevacion
                         //Mediante un Random se calcula un numero entre el 0 y 3 para acceder a cualquier medio
                         decision = desicion.nextInt(4);
@@ -88,7 +88,7 @@ public class Esquiador implements Runnable {
                         /*Esto se hace para que no quede ningun esquiador 
                         atrapado despues de que se cierran los medios de elevacion*/
                         if (unCentro.getEntradaMedios()) {
-                            unCentro.accederMedio(id, pase, 0);
+                            unCentro.accederMedio(id, pase, decision);
                             if (pase) {
                                 esquiando();
                                 descansar();
@@ -98,14 +98,15 @@ public class Esquiador implements Runnable {
                         break;
                     }
                     case 2: {//los esquiadores deciden tomar un curso de esqui
-                        if (unCentro.getEntradaInstructores()) {
+                        //if (unCentro.getEntradaInstructores()) {
                             cursoEsqui();
-                        }
+                        //}
                         break;
                     }
                     case 3: {//los esquiadores deciden ir a la confiteria
                         unCentro.entradaConfiteria(id);
                         this.comer();
+                        unCentro.salirConfiteria();
                         break;
                     }
                 }

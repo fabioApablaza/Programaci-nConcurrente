@@ -17,18 +17,20 @@ public class Instructor implements Runnable {
 
     private String nombre;
     private CentroEsqui unCentro;//objeto compartido
+    private int idCurso; //El curso en el que le toca enseñar
 
-    public Instructor(String nom, CentroEsqui unC) {
+    public Instructor(String nom, CentroEsqui unC, int idC) {
         //Constructor
         this.nombre = nom;
         this.unCentro = unC;
+        idCurso=idC;
     }
 
     public void enseñar() {
         //Simulación
         try {
             System.out.println("El instructor " + nombre + " esta dando un curso de esqui");
-            Thread.sleep(8000);
+            Thread.sleep(3000);
         } catch (InterruptedException e) {
             //e.printStackTrace();
         }
@@ -43,14 +45,16 @@ public class Instructor implements Runnable {
         while (true) {
             int numClase;
             try {
-                unCentro.cabinaInstructores(nombre);
-                numClase = unCentro.buscarNumClase(nombre);
-                if (numClase < 5) {
-                    System.out.println("Al instructor " + nombre + " se le asigno el aula n° " + (numClase + 1));
+                unCentro.entradaAlCentro();//Los instructores esperan en la entrada con los esquiadores
+                //unCentro.cabinaInstructores(nombre);
+                //numClase = unCentro.buscarNumClase(nombre);
+                numClase=unCentro.cabinaInstructores(idCurso,nombre);
+                System.out.println(nombre+" cantClase: "+numClase);
+                if (numClase == 4) {
                     enseñar();
-                    unCentro.terminarCurso(nombre, numClase);
+                    unCentro.terminarCurso(nombre, idCurso);
                 }
-            } catch (InterruptedException | BrokenBarrierException ex) {
+            } catch (InterruptedException ex) {
                 Logger.getLogger(Instructor.class.getName()).log(Level.SEVERE, null, ex);
             }
         }

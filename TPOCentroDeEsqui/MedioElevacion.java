@@ -114,6 +114,8 @@ public class MedioElevacion {
         } catch (TimeoutException e) {
             //Codigo cuando el tiempo para armar el grupo finalizo y no estan todos los integrantes
             System.out.println("No hay demasiados integrantes en el medio " + this.identificacion + " y los esquiadores se fueron");
+            //Si no hay suficientes esquiadores se crea de nuevo la barrera ciclica para que de nuevo pueda ser usada en el futuro
+            this.barreraEntrada = new CyclicBarrier(identificacion);
         } catch (BrokenBarrierException e) {
             //Codigo cuando se pudo armar el grupo
         }
