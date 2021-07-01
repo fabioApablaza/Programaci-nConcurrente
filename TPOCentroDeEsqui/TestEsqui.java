@@ -23,24 +23,45 @@ public class TestEsqui {
             hilos[i].start();
         }
     }
-    public static void crearInstructores(Instructor[] instructores,CentroEsqui unCentro){
-        String[] nombres={"Carlos","Felipe","Ana","Isabel","Maria"};        
+    public static void crearInstructores(Instructor[] instructores, CentroEsqui unCentro){
+        String[] nombres={"Carlos","Felipe","Ana","Isabel","Maria"}; 
+        
         for(int i=0;i<instructores.length;i++){
             instructores[i]=new Instructor(nombres[i],unCentro,i);
         }
+        
     }
     public static void crearEsquiadores(Esquiador[] esquiadores,CentroEsqui unCentro){
-        for(int i=0;i<esquiadores.length;i++){
+        //Se crean hilos esquiadores con pase para los medios de elevacion
+        for(int i=0;i<5;i++){
+            
             esquiadores[i]=new Esquiador((i+1),unCentro,true);
+            
         }
+        //Los restantes esquiadores no tendran pases para los medios de elvacion
+        for(int i=5;i<esquiadores.length;i++){
+            
+            esquiadores[i]=new Esquiador((i+1),unCentro,false);
+            
+        }
+    
     }
-    public static void crearHilos(Thread[] hilos,Esquiador[] esquiadores,Instructor[] instructores,Tiempo unT){
+    public static void crearHilos(Thread[] hilos, Esquiador[] esquiadores,Instructor[] instructores,Tiempo unT){
+        //Ejemplo para 10 hilos esquiadores
         hilos[0]=new Thread(unT);
+        
         for(int i=1;i<esquiadores.length+1;i++){
+            
             hilos[i]=new Thread(esquiadores[i-1]);
+            
         }
+        
+        
         for(int i=11;i<hilos.length;i++){
+            
             hilos[i]=new Thread(instructores[(i-11)]);
+            
         }
+        
     }
 }

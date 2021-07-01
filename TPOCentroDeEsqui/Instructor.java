@@ -23,7 +23,7 @@ public class Instructor implements Runnable {
         //Constructor
         this.nombre = nom;
         this.unCentro = unC;
-        idCurso=idC;
+        idCurso = idC;
     }
 
     public void enseñar() {
@@ -44,19 +44,18 @@ public class Instructor implements Runnable {
     public void run() {
         while (true) {
             int numClase;
-            try {
-                unCentro.entradaAlCentro();//Los instructores esperan en la entrada con los esquiadores
-                //unCentro.cabinaInstructores(nombre);
-                //numClase = unCentro.buscarNumClase(nombre);
-                numClase=unCentro.cabinaInstructores(idCurso,nombre);
-                System.out.println(nombre+" cantClase: "+numClase);
-                if (numClase == 4) {
-                    enseñar();
-                    unCentro.terminarCurso(nombre, idCurso);
-                }
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Instructor.class.getName()).log(Level.SEVERE, null, ex);
+
+            unCentro.entradaAlCentro();//Los instructores esperan en la entrada con los esquiadores
+
+            //unCentro.cabinaInstructores(nombre);
+            //numClase = unCentro.buscarNumClase(nombre);
+            numClase = unCentro.cabinaInstructores(idCurso, nombre);
+            System.out.println(nombre + " cantClase: " + numClase);
+            if (numClase == 4) {
+                enseñar();
+                unCentro.terminarCurso(nombre, idCurso);
             }
+
         }
 
     }
